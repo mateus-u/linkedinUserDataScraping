@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
+import pymongo
 import time
 
 #web_conection
@@ -125,14 +126,22 @@ def go_scraping(web_driver, names):
             out.write(name + ',' "Nothing to say\n")
 
 
+def connect_DB():
+    
+    client = pymongo.MongoClient("mongodb+srv://mateus:d706b7@cluster-mg1vm.gcp.mongodb.net/linkedin_users?retryWrites=true&w=majority")
+    db = client.linkedin_users
+
+    return db
 
 def main():
     
-    driver = web_driver_initialize()
-    login(driver)
-    go_scraping(driver, read_csv("in.csv"))
-    web_driver_close(driver)
+    #driver = web_driver_initialize()
+    #login(driver)
+    #go_scraping(driver, read_csv("in.csv"))
+    #web_driver_close(driver)
 
+    db = connect_DB()
+    print(db)
 
 if __name__ == "__main__":
     main()
