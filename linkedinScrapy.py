@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
-import pymongo
+from pymongo import MongoClient
 import time
 
 #web_conection
@@ -53,13 +53,8 @@ def read_csv(file_name):
 
 #web scraping
 
-def go_scraping(web_driver, names):
+def go_scraping(web_driver, names, database):
 
-    #clear the output file
-    out = open("out.csv", "w")
-    out.write("")
-    out.close()
-    
     #scrapy each name in the name list
     for name in names:
         
@@ -78,70 +73,76 @@ def go_scraping(web_driver, names):
             #create a BeautifulSoup object
             soup = BeautifulSoup(web_driver.page_source, 'html.parser')
         
-            #output receives the string that will be written to the output file
-            output = name + "," + web_driver.current_url 
-
             #find sections of interest
             experience = soup.find(id='experience-section')
             education = soup.find(id='education-section')
             certifications = soup.find(id='certifications-section')
 
             #certifiacations search
-            output += '\nCertifications'
+            certifications_list = []
             try:
                 out_certifications = certifications.findAll(class_='pv-certifications__summary-info')
                 for a in out_certifications:
-                    output += (',' + (a.find('h3').contents[0]))
+                    certifications_list.append(a.find('h3').contents[0])
             except:
                 #If have no certifications
-                output += ",No certifications"
+                certifications_list.append("No certifications")
 
             #Education search
-            output += '\nEducation'
+            education_list = []
             try:
                 out_education = education.findAll(class_='pv-entity__degree-info')
                 for a in out_education:
-                    output += (',' + (a.find('h3').contents[0]))
+                    education_list.append(a.find('h3').contents[0])
             except:
                 #If have no education
-                output += ",No education"
+                education_list.append("No education")
 
             #Experience search
-            output += '\nExperience'
+            experience_list = []
             try:
                 out_experience = experience.findAll(class_='pv-entity__summary-info')
                 for a in out_experience:
-                    output += (',' + (str(a.find('h3').contents[0]) +','+str(a.find(class_='pv-entity__secondary-title').contents[0]).replace('\n', "") +','+ str(a.find(class_='pv-entity__bullet-item-v2').contents[0])) + '\n')
+                    experience_data = {"Role": a.find('h3').contents[0],
+                                       "Company": a.find(class_='pv-entity__secondary-title').contents[0].replace('\n', ""), 
+                                       "Duration": a.find(class_='pv-entity__bullet-item-v2').contents[0]}
+                    experience_list.append(experience_data)
             except:
                 #If have no experience
-                output += ",No experience\n"
+                experience_list.append("No experience\n")
 
             #write output file
-            out = open("out.csv", "a")
-            out.write(output + '\n')
+
+            user = {"Name": name, 
+                    "Linkedin_Url": web_driver.current_url, 
+                    "Certifications": certifications_list, 
+                    "Education": education_list,
+                    "Experience": experience_list}
+            database.user.insert_one(user)
+
 
         except:
             #If the name is not found
-            out = open("out.csv", "a")
-            out.write(name + ',' "Nothing to say\n")
+            user = {"Name": name, "Linkedin_Url": "Not found", "Certifications": [], "Education": []}
+            database.user.insert_one(user)
 
 
 def connect_DB():
     
-    client = pymongo.MongoClient("mongodb+srv://mateus:d706b7@cluster-mg1vm.gcp.mongodb.net/linkedin_users?retryWrites=true&w=majority")
-    db = client.linkedin_users
+    client = MongoClient("mongodb+srv://mateus:<password>@cluster-mg1vm.gcp.mongodb.net/linkedin_users?retryWrites=true&w=majority")
+    database = client.linkedin_users
 
-    return db
+    return database
 
 def main():
     
-    #driver = web_driver_initialize()
-    #login(driver)
-    #go_scraping(driver, read_csv("in.csv"))
-    #web_driver_close(driver)
-
     db = connect_DB()
-    print(db)
+
+    driver = web_driver_initialize()
+    login(driver)
+    go_scraping(driver, read_csv("in.csv"), db)
+    web_driver_close(driver)
+
 
 if __name__ == "__main__":
     main()
