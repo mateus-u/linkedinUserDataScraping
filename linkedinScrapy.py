@@ -130,7 +130,7 @@ def go_scraping(web_driver, names, database):
 
 def connect_DB():
     
-    client = MongoClient("mongodb+srv://mateus:<password>@cluster-mg1vm.gcp.mongodb.net/linkedin_users?retryWrites=true&w=majority")
+    client = MongoClient("mongodb+srv://mateus:d706b7@cluster-mg1vm.mongodb.net/linkedin_users?retryWrites=true&w=majority")
     database = client.linkedin_users
 
     return database
