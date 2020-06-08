@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
 import time
@@ -9,10 +10,10 @@ import time
 def web_driver_initialize():
 
     #Firefox web driver initialization
-    driver = webdriver.Firefox()
-    #Minimize Firefox window
-    driver.minimize_window()
-    
+    options = Options()
+    options.headless = True
+    driver = webdriver.Firefox(options=options, executable_path='geckodriver')
+
     return driver
 
 def web_driver_close(web_driver):
