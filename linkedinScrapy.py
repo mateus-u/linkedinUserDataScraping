@@ -12,7 +12,7 @@ def web_driver_initialize():
 
     #Firefox web driver initialization
     options = Options()
-    options.headless = False
+    options.headless = True
     driver = webdriver.Firefox(options=options, executable_path= (os.getcwd() + '/geckodriver'))
 
     return driver
@@ -41,9 +41,6 @@ def login(web_driver):
     web_driver.find_element_by_class_name('login__form_action_container').click()
 
     time.sleep(10)
-
-    if web_driver.title != "LinkedIn":
-        raise Exception("Login Error")
 
     return web_driver
 
@@ -136,7 +133,7 @@ def go_scraping(web_driver, names, database):
 
 def connect_DB():
     
-    client = MongoClient("mongodb+srv://mateus:d706b7@cluster-mg1vm.mongodb.net/linkedin_users?retryWrites=true&w=majority")
+    client = MongoClient("mongodb+srv://mateus:<password>@cluster-mg1vm.mongodb.net/linkedin_users?retryWrites=true&w=majority")
     database = client.linkedin_users
 
     return database
