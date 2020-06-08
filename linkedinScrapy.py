@@ -4,6 +4,7 @@ from selenium.webdriver.firefox.options import Options
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
 import time
+import os
 
 #web_conection
 
@@ -12,7 +13,7 @@ def web_driver_initialize():
     #Firefox web driver initialization
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(options=options, executable_path='geckodriver')
+    driver = webdriver.Firefox(options=options, executable_path= (os.getcwd() + '/geckodriver'))
 
     return driver
 
@@ -137,13 +138,37 @@ def connect_DB():
 
 def main():
     
-    db = connect_DB()
+    try:
+        db = connect_DB()
+    except:
+        print("DataBase connection Error")
 
-    driver = web_driver_initialize()
-    login(driver)
-    go_scraping(driver, read_csv("in.csv"), db)
+    else:
+        print("DataBase connection is OK")     
+        try:
+            driver = web_driver_initialize()        
+        except:
+            print("Web Driver Error")
+
+        else:
+            print("Web Driver is OK")
+            try:
+                login(driver)
+            except:
+                print("Login Error")
+            
+            else:
+                print("Login is OK")
+                
+                try:
+                    go_scraping(driver, read_csv("in.csv"), db)
+                except:
+                    print("Scraping Error")
+
+                else:
+                    print("Completed")
+    
     web_driver_close(driver)
-
 
 if __name__ == "__main__":
     main()
