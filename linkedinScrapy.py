@@ -12,7 +12,7 @@ def web_driver_initialize():
 
     #Firefox web driver initialization
     options = Options()
-    options.headless = True
+    options.headless = False
     driver = webdriver.Firefox(options=options, executable_path= (os.getcwd() + '/geckodriver'))
 
     return driver
@@ -40,6 +40,11 @@ def login(web_driver):
     web_driver.find_element_by_name("session_password").send_keys(password)
     web_driver.find_element_by_class_name('login__form_action_container').click()
 
+    time.sleep(10)
+
+    if web_driver.title != "LinkedIn":
+        raise Exception("Login Error")
+
     return web_driver
 
 #input file read
@@ -64,12 +69,12 @@ def go_scraping(web_driver, names, database):
         url = "https://www.linkedin.com/search/results/all/?keywords=" + name.replace(" ","%20") + "&origin=GLOBAL_SEARCH_HEADER"
         #open url in web browser
         web_driver.get(url)
-        
+
         try:
             #click on first result
             web_driver.find_element_by_class_name('search-result__result-link').click()
             #wait page load
-            time.sleep(3)
+            time.sleep(5)
 
             #using bs4 to find the important information
             #create a BeautifulSoup object
@@ -167,8 +172,7 @@ def main():
 
                 else:
                     print("Completed")
-    
-    web_driver_close(driver)
+                    web_driver_close(driver)
 
 if __name__ == "__main__":
     main()
